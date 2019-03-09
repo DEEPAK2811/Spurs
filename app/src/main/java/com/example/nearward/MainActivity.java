@@ -4,18 +4,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 
-import android.annotation.SuppressLint;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
@@ -31,37 +27,15 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
-
-import static java.security.AccessController.getContext;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
@@ -123,28 +97,28 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     String lat, lon;
     @Override
     public void onLocationChanged(Location location) {
-        locationText.setText("Latitude: " + location.getLatitude() + "\n Longitude: " + location.getLongitude());
         lat = Double.toString(location.getLatitude());
         lon = Double.toString(location.getLongitude());
+        locationText.setText("Latitude: " + location.getLatitude() + "\n Longitude: " + location.getLongitude());
+
 
        //new AsyncTaskRunner().execute();
         //new BackgroundWorker(getApplicationContext()).execute();
         String url = "https://barcoendpoint.herokuapp.com/api/gethospitals?coordinates="+lat+","+lon;
 
-        JsonObjectRequest jsonRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+        JsonArrayRequest jsonRequest = new JsonArrayRequest
+
+                (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
                     @Override
-                    public void onResponse(JSONObject response) {
+                    public void onResponse(JSONArray response) {
+                        Log.d("JsonArray  ::  ",response.toString());
+
                         // the response is already constructed as a JSONObject!
-                        try {
-                            response = response.getJSONObject("data");
-                            String id = response.getString("_id"),
-                                    name = response.getString("Name");
-                            System.out.println("ID: "+id+"\nName: "+name);
-                            locationText2.setText("ID: "+id+"\nName: "+name);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        Intent intent = new Intent(MainActivity.this, Lastscreen.class);
+                        intent.putExtra("jsonObject", response.toString());
+                        startActivity(intent);
+
                     }
                 }, new Response.ErrorListener() {
 
