@@ -5,9 +5,7 @@ import android.os.Bundle;
 
 
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,9 +18,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -32,6 +28,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +52,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -124,8 +127,37 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         lat = Double.toString(location.getLatitude());
         lon = Double.toString(location.getLongitude());
 
-//new AsyncTaskRunner().execute();
-        new BackgroundWorker(getApplicationContext()).execute();
+       //new AsyncTaskRunner().execute();
+        //new BackgroundWorker(getApplicationContext()).execute();
+        String url = "https://barcoendpoint.herokuapp.com/api/gethospitals?coordinates="+lat+","+lon;
+
+        JsonObjectRequest jsonRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        // the response is already constructed as a JSONObject!
+                        try {
+                            response = response.getJSONObject("data");
+                            String id = response.getString("_id"),
+                                    name = response.getString("Name");
+                            System.out.println("ID: "+id+"\nName: "+name);
+                            locationText2.setText("ID: "+id+"\nName: "+name);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                    }
+                });
+
+        Volley.newRequestQueue(this).add(jsonRequest);
+
+
+
         try {
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
             List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
@@ -153,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    private class BackgroundWorker extends AsyncTask<String, Void, String> {
+  /*  private class BackgroundWorker extends AsyncTask<String, Void, String> {
 
         Context context;
         String result;
@@ -166,41 +198,38 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         protected String doInBackground(String... params) {
             //String register_url = "http://www.axisbank.epizy.com";
             Log.d("ID:", idd);
-            String register_url = "http://159.65.144.222/test.php?X="+lat+"&Y="+lon+"&ID=2";
+            String register_url = "https://barcoendpoint.herokuapp.com/api/gethospitals?coordinates="+lat+","+lon;
             try {
                 URL url = new URL(register_url);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
                 httpURLConnection.setDoOutput(true);
                 httpURLConnection.setDoInput(true);
-                OutputStream outputStream = httpURLConnection.getOutputStream();
+              OutputStream outputStream = httpURLConnection.getOutputStream();
 
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
                 String post_data = URLEncoder.encode("X", "UTF-8")+"="+URLEncoder.encode(lat, "UTF-8")
-                        +"&"+URLEncoder.encode("Y","UTF-8")+"="+URLEncoder.encode(lon,"UTF-8")
-                        +"&"+URLEncoder.encode("ID","UTF-8")+"="+URLEncoder.encode("1","UTF-8")
-
-                        ;
+                        +"&"+URLEncoder.encode("Y","UTF-8")+"="+URLEncoder.encode(lon,"UTF-8");
                 bufferedWriter.write(post_data);
                 bufferedWriter.flush();
                 bufferedWriter.close();
 
 
                 Log.d("URL:", register_url);
-                outputStream.close();
+               outputStream.close();
                 try {
                     InputStream inputStream = httpURLConnection.getInputStream();
-                    Log.d("encode", "encoded");
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"));
-                    Log.d("encode", "encoded");
+                    Log.d("encode1", "encoded");
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.ISO_8859_1));
+                    Log.d("encode2", "encoded");
                     result = "";
                     String line = "";
                     while ((line = bufferedReader.readLine()) != null) {
                         result += line;
                     }
-                    // Log.d("encode",result);
-                    // locationText2.setText(result);
-                    bufferedReader.close();
+                     Log.d("initial result",result);
+                    //locationText2.setText(result);
+                   bufferedReader.close();
                     inputStream.close();
                     httpURLConnection.disconnect();
 
@@ -237,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            Log.d("encode",result);
+            Log.d("result",result);
             locationText2.setText(result);
 
             // result
@@ -249,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private void msg(String s)
     {
         Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
-    }
+    }*/
 
 
 
